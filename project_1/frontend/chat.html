@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamRAG | Chat</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">ExamRAG</div>
+        <nav class="nav">
+          <a href="index.html">Home</a>
+          <a href="chat.html">Chat</a>
+          <a href="admin.html">Admin</a>
+        </nav>
+      </header>
+
+      <div class="page-header">
+        <h2>Student assistant</h2>
+        <span class="small-label" id="subjectBadge">AKTU · DBMS · Unit 3</span>
+      </div>
+
+      <div class="chat-layout">
+        <aside class="card sidebar">
+          <h3>Available subjects</h3>
+          <ul id="subjectList"></ul>
+        </aside>
+
+        <div class="card chat-panel">
+          <div class="chat-box" id="chatBox">
+            <div class="message assistant">
+              Hello! Ask me about your notes, and I’ll answer using the relevant course context and citations.
+            </div>
+          </div>
+
+          <form id="chatForm" style="margin-top: 18px;">
+            <label for="subjectSelect" style="font-weight: 700; margin-bottom: 8px; display: block;">Subject</label>
+            <select id="subjectSelect" style="margin-bottom: 12px;"></select>
+            <textarea id="questionInput" placeholder="Type your question here..."></textarea>
+            <button class="primary-btn" type="submit">Ask ExamRAG</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+      const API_BASE = window.EXAMRAG_API_BASE || 'http://127.0.0.1:8000/api/v1';
+      const chatBox = document.getElementById('chatBox');
+      const chatForm = document.getElementById('chatForm');
+      const questionInput = document.getElementById('questionInput');
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectBadge = document.getElementById('subjectBadge');
+      const subjectList = document.getElementById('subjectList');
+
+      function getAuthHeaders() {
+        const token = localStorage.getItem('examrag_token');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+      }
+
+      async function autoLoginDemo() {
+        if (localStorage.getItem('examrag_token')) {
+          return true;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'student@example.com', password: 'secret123' })
+          });
+
+          if (!response.ok) {
+            return false;
+          }
+
+          const data = await response.json();
+          localStorage.setItem('examrag_token', data.access_token);
+          localStorage.setItem('examrag_email', 'student@example.com');
+          return true;
+        } catch (error) {
+          console.error('Demo login failed:', error);
+          return false;
+        }
+      }
+
+      function appendMessage(role, text, citations = []) {
+        const div = document.createElement('div');
+        div.className = `message ${role}`;
+        div.innerHTML = text;
+
+        if (citations.length) {
+          const cite = document.createElement('div');
+          cite.className = 'citation';
+          cite.textContent = citations.map((c) => `Source: ${c.document || 'Unknown'} · Page ${c.page ?? 'n/a'}`).join(' | ');
+          div.appendChild(cite);
+        }
+
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      async function loadSubjects() {
+        try {
+          const response = await fetch(`${API_BASE}/subjects`, {
+            headers: getAuthHeaders()
+          });
+          const data = await response.json();
+          const subjects = data.subjects || [];
+
+          if (!subjects.length) return;
+
+          subjectList.innerHTML = '';
+          subjectSelect.innerHTML = '';
+
+          subjects.forEach((subject) => {
+            const option = document.createElement('option');
+            option.value = subject.name;
+            option.textContent = `${subject.university || 'AKTU'} · ${subject.name}`;
+            subjectSelect.appendChild(option);
+
+            const item = document.createElement('li');
+            item.textContent = `${subject.name} (${subject.course || 'Course'})`;
+            subjectList.appendChild(item);
+          });
+
+          const defaultSubject = subjects.find((s) => s.name === 'DBMS') || subjects[0];
+          subjectSelect.value = defaultSubject.name;
+          subjectBadge.textContent = `${defaultSubject.university || 'AKTU'} · ${defaultSubject.name} · Semester ${defaultSubject.semester || 'N/A'}`;
+        } catch (error) {
+          console.error('Failed to load subjects:', error);
+          appendMessage('assistant', '<strong>Unable to load subjects.</strong> Please login or check the backend connection.');
+        }
+      }
+
+      subjectSelect.addEventListener('change', function () {
+        const selected = subjectSelect.value;
+        subjectBadge.textContent = `AKTU · ${selected}`;
+      });
+
+      chatForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        appendMessage('user', question);
+        questionInput.value = '';
+
+        const submitButton = chatForm.querySelector('button');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Thinking...';
+
+        try {
+          const response = await fetch(`${API_BASE}/chat`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...getAuthHeaders()
+            },
+            body: JSON.stringify({
+              question,
+              language: 'english',
+              filters: { subject: subjectSelect.value || 'DBMS' }
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || 'The backend failed to answer.');
+          }
+
+          appendMessage('assistant', (data.answer || 'No answer returned.').replace(/\n/g, '<br>'), data.citations || []);
+        } catch (error) {
+          appendMessage('assistant', `<strong>Error:</strong> ${error.message}`);
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Ask ExamRAG';
+        }
+      });
+
+      (async function () {
+        const isLoggedIn = Boolean(localStorage.getItem('examrag_token'));
+        if (!isLoggedIn) {
+          const demoReady = await autoLoginDemo();
+          if (!demoReady) {
+            appendMessage('assistant', '<strong>Please log in first.</strong> <a href="login.html">Go to login</a>');
+          }
+        }
+        await loadSubjects();
+      })();
+    </script>
+  </body>
+</html>
+

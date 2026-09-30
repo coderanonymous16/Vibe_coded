@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamRAG | Login</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">ExamRAG</div>
+        <nav class="nav">
+          <a href="index.html">Home</a>
+          <a href="chat.html">Chat</a>
+        </nav>
+      </header>
+
+      <div class="card form-shell">
+        <h2>Welcome back</h2>
+        <form id="loginForm">
+          <label>
+            Email
+            <input id="email" type="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Password
+            <input id="password" type="password" placeholder="••••••••" required />
+          </label>
+          <button type="submit" class="primary-btn">Login</button>
+        </form>
+        <p id="statusText"></p>
+        <p>Need an account? <a href="register.html">Create one</a></p>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+      const API_BASE = window.EXAMRAG_API_BASE || 'http://127.0.0.1:8000/api/v1';
+      const loginForm = document.getElementById('loginForm');
+      const statusText = document.getElementById('statusText');
+      const demoButton = document.createElement('button');
+      demoButton.type = 'button';
+      demoButton.className = 'secondary-btn';
+      demoButton.textContent = 'Use demo account';
+      demoButton.style.marginTop = '12px';
+      demoButton.style.width = '100%';
+      statusText.insertAdjacentElement('afterend', demoButton);
+
+      function setDemoCredentials() {
+        document.getElementById('email').value = 'student@example.com';
+        document.getElementById('password').value = 'secret123';
+      }
+
+      demoButton.addEventListener('click', async function () {
+        setDemoCredentials();
+        statusText.textContent = 'Signing in with demo account...';
+        try {
+          const response = await fetch(`${API_BASE}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'student@example.com', password: 'secret123' })
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || 'Demo login failed');
+          }
+
+          localStorage.setItem('examrag_token', data.access_token);
+          localStorage.setItem('examrag_email', 'student@example.com');
+          statusText.textContent = 'Demo login successful. Redirecting...';
+          window.location.href = 'chat.html';
+        } catch (error) {
+          statusText.textContent = error.message;
+        }
+      });
+
+      loginForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        statusText.textContent = 'Signing in...';
+        try {
+          const response = await fetch(`${API_BASE}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || 'Login failed');
+          }
+
+          localStorage.setItem('examrag_token', data.access_token);
+          localStorage.setItem('examrag_email', email);
+          statusText.textContent = 'Login successful. Redirecting...';
+          window.location.href = 'chat.html';
+        } catch (error) {
+          statusText.textContent = error.message;
+        }
+      });
+    </script>
+  </body>
+</html>
+

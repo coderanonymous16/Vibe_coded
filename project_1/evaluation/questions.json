@@ -1,0 +1,4 @@
+[
+  {"id": "q1", "question": "What is normalization?", "subject": "DBMS", "unit": 3},
+  {"id": "q2", "question": "What is 2NF?", "subject": "DBMS", "unit": 3}
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "chunk_id": "dbms-norm-1",
+    "text": "Normalization is the process of organizing data to reduce redundancy and improve data integrity in a relational database.",
+    "page": 3,
+    "metadata": {
+      "title": "DBMS Unit 3 Notes",
+      "university": "AKTU",
+      "course": "B.Tech CSE",
+      "semester": 6,
+      "subject": "DBMS",
+      "unit": 3
+    }
+  },
+  {
+    "chunk_id": "dbms-norm-2",
+    "text": "1NF ensures atomic values, 2NF removes partial dependency, and 3NF removes transitive dependency from a table design.",
+    "page": 5,
+    "metadata": {
+      "title": "DBMS Unit 3 Notes",
+      "university": "AKTU",
+      "course": "B.Tech CSE",
+      "semester": 6,
+      "subject": "DBMS",
+      "unit": 3
+    }
+  },
+  {
+    "chunk_id": "dbms-norm-3",
+    "text": "Functional dependency means the value of one attribute determines another attribute in a table, which is crucial for normalization.",
+    "page": 7,
+    "metadata": {
+      "title": "DBMS Unit 3 Notes",
+      "university": "AKTU",
+      "course": "B.Tech CSE",
+      "semester": 6,
+      "subject": "DBMS",
+      "unit": 3
+    }
+  },
+  {
+    "chunk_id": "os-sched-1",
+    "text": "CPU scheduling decides which process gets the CPU at a given moment to maximize throughput and minimize waiting time.",
+    "page": 2,
+    "metadata": {
+      "title": "Operating Systems Quick Revision",
+      "university": "AKTU",
+      "course": "B.Tech CSE",
+      "semester": 6,
+      "subject": "OS",
+      "unit": 2
+    }
+  }
+]

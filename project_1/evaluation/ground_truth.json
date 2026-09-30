@@ -1,0 +1,4 @@
+{
+  "q1": ["Normalization is the process of organizing data to reduce redundancy."],
+  "q2": ["2NF is a normal form where every non-key attribute is fully dependent on the primary key."]
+}

@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: examrag-backend
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: APP_NAME
+        value: ExamRAG
+      - key: APP_VERSION
+        value: 0.1.0
+      - key: API_V1_PREFIX
+        value: /api/v1
+      - key: DEBUG
+        value: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_ECHO
+        value: false
+      - key: SECRET_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://examrag.vercel.app,https://*.vercel.app,http://localhost:3000
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: EMBEDDING_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: APP_BASE_URL
+        value: https://examrag-backend.onrender.com
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
